@@ -44,51 +44,6 @@ body {
   cursor: none;
 }
 
-/* VIDEO BACKGROUND */
-.video-bg {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  z-index: -2;
-  overflow: hidden;
-  pointer-events: none;
-}
-
-.video-bg iframe {
-  position: absolute;
-  top: 50%; left: 50%;
-  width: 100vw;
-  height: 56.25vw; /* 16:9 ratio */
-  min-height: 100vh;
-  min-width: 177.77vh; /* 16:9 ratio */
-  transform: translate(-50%, -50%);
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 2s ease;
-}
-
-.video-bg iframe.loaded { opacity: 1; }
-
-/* Dark overlay */
-.video-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  background: linear-gradient(
-    to bottom,
-    rgba(0,0,0,0.75) 0%,
-    rgba(0,0,0,0.55) 40%,
-    rgba(0,0,0,0.75) 100%
-  );
-  pointer-events: none;
-}
-
-/* Make sections have transparent backgrounds so video shows through */
-#hero { background: transparent !important; }
-.section { background: rgba(0,0,0,0.6) !important; backdrop-filter: blur(2px); }
-nav { background: rgba(0,0,0,0.7) !important; }
-footer { background: rgba(0,0,0,0.8) !important; }
-
 /* CURSOR */
 .cursor {
   position: fixed; top: 0; left: 0; z-index: 9999;
@@ -220,7 +175,7 @@ nav {
     radial-gradient(1.5px 1.5px at 88% 45%, rgba(255,255,255,0.6) 0%, transparent 100%),
     radial-gradient(1px 1px at 48% 95%, rgba(255,255,255,0.4) 0%, transparent 100%),
     radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,0.3) 0%, transparent 100%);
-  animation: starDrift 60s linear infinite; opacity: 0.3;
+  animation: starDrift 60s linear infinite;
 }
 @keyframes starDrift {
   from { transform: translateY(0); }
@@ -736,18 +691,6 @@ footer p {
 
 <div class="cursor" id="cursor"></div>
 
-<!-- FULLSCREEN VIDEO BACKGROUND -->
-<div class="video-bg" id="videoBg">
-  <!-- 4K Solar Eclipse video - NASA/public domain footage -->
-  <iframe id="bgVideo"
-    src="https://www.youtube.com/embed/FMNHqmVqNhM?autoplay=1&mute=1&loop=1&playlist=FMNHqmVqNhM&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&enablejsapi=1"
-    frameborder="0"
-    allow="autoplay; encrypted-media"
-    allowfullscreen>
-  </iframe>
-</div>
-<div class="video-overlay"></div>
-
 <!-- NAV -->
 <nav>
   <a class="nav-brand" href="#">
@@ -1014,44 +957,37 @@ window.addEventListener('scroll', () => {
 });
 
 // Form submit
-document.getElementById('eclipseSubmit').addEventListener('click', async function() {
+document.getElementById('eclipseSubmit').addEventListener('click', function() {
   const name = document.getElementById('ec-name').value.trim();
   const email = document.getElementById('ec-email').value.trim();
   const phone = document.getElementById('ec-phone').value.trim();
   const org = document.getElementById('ec-org').value.trim();
-  const subject_val = document.getElementById('ec-subject').value.trim();
+  const subject = document.getElementById('ec-subject').value.trim();
   const plan = document.getElementById('ec-plan').value;
   const students = document.getElementById('ec-students').value;
   const notes = document.getElementById('ec-notes').value.trim();
   if (!name || !email) { alert('Please fill in your name and email.'); return; }
-  this.querySelector('span').textContent = 'Sending...';
-  this.style.pointerEvents = 'none';
-  try {
-    const res = await fetch('https://formspree.io/f/mpqnegpq', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify({ name, email, phone, organisation: org, subject: subject_val, plan, students, notes, _subject: 'Eclipse Classroom Registration: ' + name })
-    });
-    if (res.ok) {
-      this.querySelector('span').textContent = '✓ Registered! We will be in touch.';
-      this.style.background = '#fff'; this.style.color = '#000';
-      ['ec-name','ec-email','ec-phone','ec-org','ec-subject','ec-notes'].forEach(id => document.getElementById(id).value = '');
-      document.getElementById('ec-plan').value = '';
-      document.getElementById('ec-students').value = '';
-    } else { throw new Error(); }
-  } catch(e) {
-    this.querySelector('span').textContent = '✗ Error — Try Again';
-    this.style.background = '#7a0000'; this.style.color = '#fff';
-  }
-  setTimeout(() => { this.querySelector('span').textContent = 'Launch My Classroom →'; this.style.background=''; this.style.color=''; this.style.pointerEvents=''; }, 4000);
+  const subj = encodeURIComponent('Eclipse Classroom Registration: ' + name);
+  const body = encodeURIComponent(
+    'Name: ' + name +
+    '\nEmail: ' + email +
+    '\nPhone: ' + phone +
+    '\nOrganisation: ' + org +
+    '\nSubject: ' + subject +
+    '\nPlan: ' + plan +
+    '\nStudents: ' + students +
+    '\nNotes: ' + notes
+  );
+  window.location.href = 'mailto:falcon.incoroporated@gmail.com?subject=' + subj + '&body=' + body;
+  this.querySelector('span').textContent = '✓ Opening Email...';
+  this.style.background = '#fff';
+  this.style.color = '#000';
+  setTimeout(() => {
+    this.querySelector('span').textContent = 'Launch My Classroom →';
+    this.style.background = '';
+    this.style.color = '';
+  }, 3000);
 });
-
-// Video background fade in
-setTimeout(() => {
-  const iframe = document.getElementById('bgVideo');
-  if (iframe) iframe.classList.add('loaded');
-}, 2000);
-
 </script>
 </body>
 </html>
