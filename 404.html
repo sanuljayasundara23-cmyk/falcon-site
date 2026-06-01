@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>404 — Signal Lost | FALCON</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='32' fill='%23000'/%3E%3Ccircle cx='32' cy='32' r='30' fill='none' stroke='%23fff' stroke-width='2'/%3E%3Ctext x='32' y='44' font-family='serif' font-size='36' font-weight='bold' fill='%23fff' text-anchor='middle'%3EF%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+@import url('https://fonts.cdnfonts.com/css/anurati');
+@font-face {
+  font-family: 'Anurati';
+  src: url('https://cdn.jsdelivr.net/gh/kaberikram/anurati@main/font/Anurati.otf') format('opentype'),
+       url('https://raw.githubusercontent.com/kaberikram/anurati/master/font/Anurati.otf') format('opentype');
+  font-display: swap;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --black: #000;
+  --white: #fff;
+  --gray: #888;
+  --border: rgba(255,255,255,0.08);
+  --logo: 'Anurati', sans-serif;
+  --display: 'Syne', sans-serif;
+  --mono: 'Space Mono', monospace;
+}
+
+html, body {
+  width: 100%; height: 100%;
+  background: var(--black);
+  color: var(--white);
+  overflow: hidden;
+  cursor: none;
+}
+
+/* CURSOR */
+.cursor {
+  position: fixed; top: 0; left: 0; z-index: 9999;
+  width: 10px; height: 10px;
+  background: var(--white);
+  border-radius: 50%;
+  pointer-events: none;
+  transform: translate(-50%,-50%);
+  transition: width 0.2s, height 0.2s;
+  mix-blend-mode: difference;
+}
+.cursor.expand { width: 40px; height: 40px; }
+
+/* NOISE OVERLAY */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 800;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+}
+
+/* STATIC CANVAS */
+#static-canvas {
+  position: fixed; inset: 0; z-index: 1;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+#static-canvas.active { opacity: 1; }
+
+/* SCANLINE */
+.scanlines {
+  position: fixed; inset: 0; z-index: 2;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.18) 2px,
+    rgba(0,0,0,0.18) 4px
+  );
+}
+
+/* HORIZONTAL GLITCH LINE */
+.glitch-line {
+  position: fixed;
+  left: 0; right: 0;
+  height: 2px;
+  background: rgba(255,255,255,0.12);
+  z-index: 3;
+  pointer-events: none;
+  animation: glitchSweep 7s linear infinite;
+}
+@keyframes glitchSweep {
+  0%   { top: -2px; opacity: 0; }
+  5%   { opacity: 1; }
+  95%  { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+
+/* NAV */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 500;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1.6rem 3rem;
+  border-bottom: 1px solid var(--border);
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(16px);
+}
+.nav-logo {
+  font-family: var(--logo);
+  font-size: 1.4rem;
+  letter-spacing: 0.18em;
+  color: var(--white);
+  text-decoration: none;
+}
+.nav-status {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gray);
+  display: flex; align-items: center; gap: 0.6rem;
+}
+.status-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--gray);
+  animation: statusBlink 1.8s ease-in-out infinite;
+}
+@keyframes statusBlink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+/* MAIN */
+.stage {
+  width: 100%; height: 100vh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  position: relative;
+  z-index: 10;
+  padding: 2rem;
+  text-align: center;
+}
+
+/* 404 big display */
+.four-oh-four {
+  position: relative;
+  display: flex; align-items: center; gap: 0.05em;
+  margin-bottom: 2rem;
+}
+
+.num {
+  font-family: var(--logo);
+  font-size: clamp(6rem, 22vw, 16rem);
+  letter-spacing: 0.06em;
+  line-height: 1;
+  display: block;
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(255,255,255,0.18);
+  animation: fadeUp 0.9s cubic-bezier(.77,0,.175,1) both;
+  user-select: none;
+}
+.num:nth-child(1) { animation-delay: 0.05s; }
+.num:nth-child(2) { animation-delay: 0.15s; }
+.num:nth-child(3) { animation-delay: 0.25s; }
+
+/* Middle radio dial replacing the 0 */
+.dial-wrap {
+  position: relative;
+  width: clamp(6rem, 22vw, 16rem);
+  height: clamp(6rem, 22vw, 16rem);
+  flex-shrink: 0;
+  animation: fadeUp 0.9s 0.15s cubic-bezier(.77,0,.175,1) both;
+}
+.dial-outer {
+  position: absolute; inset: 0;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.15);
+  animation: dialSpin 12s linear infinite;
+}
+.dial-tick {
+  position: absolute;
+  width: 1px;
+  height: 14%;
+  background: rgba(255,255,255,0.25);
+  top: 0; left: 50%;
+  transform-origin: bottom center;
+}
+.dial-inner {
+  position: absolute;
+  inset: 18%;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.1);
+  display: flex; align-items: center; justify-content: center;
+}
+.dial-needle {
+  position: absolute;
+  inset: 28%;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+}
+.dial-needle::before {
+  content: '';
+  position: absolute;
+  width: 2px;
+  height: 45%;
+  background: rgba(255,255,255,0.6);
+  bottom: 50%;
+  left: 50%;
+  transform: translateX(-50%) rotate(35deg);
+  transform-origin: bottom center;
+  border-radius: 2px;
+  animation: needleJitter 0.15s step-end infinite;
+}
+@keyframes needleJitter {
+  0%   { transform: translateX(-50%) rotate(35deg); }
+  20%  { transform: translateX(-50%) rotate(28deg); }
+  40%  { transform: translateX(-50%) rotate(41deg); }
+  60%  { transform: translateX(-50%) rotate(22deg); }
+  80%  { transform: translateX(-50%) rotate(37deg); }
+  100% { transform: translateX(-50%) rotate(35deg); }
+}
+.dial-center {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.4);
+  box-shadow: 0 0 8px rgba(255,255,255,0.3);
+  position: absolute;
+}
+@keyframes dialSpin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Frequency bands around dial */
+.freq-ring {
+  position: absolute;
+  inset: -12%;
+  border-radius: 50%;
+  border: 1px dashed rgba(255,255,255,0.05);
+  animation: dialSpin 30s linear infinite reverse;
+}
+
+/* Waveform */
+.waveform {
+  display: flex; align-items: center; gap: 2px;
+  height: 32px;
+  margin: 2rem 0 2.5rem;
+  animation: fadeUp 0.9s 0.4s both;
+}
+.wbar {
+  width: 3px;
+  border-radius: 2px;
+  background: rgba(255,255,255,0.2);
+  animation: wbarIdle 0.6s ease-in-out infinite alternate;
+}
+.wbar:nth-child(odd)  { animation-delay: 0.1s; }
+.wbar:nth-child(3n)   { animation-delay: 0.2s; }
+.wbar:nth-child(5n)   { animation-delay: 0.3s; }
+@keyframes wbarIdle {
+  from { height: 4px; }
+  to   { height: 8px; }
+}
+
+/* Text */
+.signal-label {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: var(--gray);
+  margin-bottom: 1.2rem;
+  display: flex; align-items: center; gap: 1rem;
+  justify-content: center;
+  animation: fadeUp 0.9s 0.35s both;
+}
+.signal-label::before, .signal-label::after {
+  content: '';
+  width: 36px; height: 1px;
+  background: var(--gray);
+  opacity: 0.4;
+}
+
+.headline {
+  font-family: var(--display);
+  font-size: clamp(1rem, 3vw, 1.5rem);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--white);
+  margin-bottom: 0.8rem;
+  animation: fadeUp 0.9s 0.45s both;
+}
+
+.subline {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  color: var(--gray);
+  line-height: 1.8;
+  max-width: 360px;
+  animation: fadeUp 0.9s 0.55s both;
+}
+
+/* Frequency readout */
+.freq-readout {
+  margin-top: 1.6rem;
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.2em;
+  color: rgba(255,255,255,0.18);
+  animation: fadeUp 0.9s 0.65s both;
+}
+.freq-num {
+  display: inline-block;
+  animation: freqFlicker 0.3s step-end infinite;
+}
+@keyframes freqFlicker {
+  0%   { content: ''; opacity: 1; }
+  33%  { opacity: 0.4; }
+  66%  { opacity: 0.8; }
+  100% { opacity: 1; }
+}
+
+/* HOME BUTTON */
+.home-btn {
+  margin-top: 3rem;
+  display: inline-flex; align-items: center; gap: 0.8rem;
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--white);
+  text-decoration: none;
+  border: 1px solid rgba(255,255,255,0.2);
+  padding: 1rem 2rem;
+  position: relative; overflow: hidden;
+  transition: color 0.3s;
+  animation: fadeUp 0.9s 0.75s both;
+}
+.home-btn::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: var(--white);
+  transform: translateX(-101%);
+  transition: transform 0.35s cubic-bezier(.77,0,.175,1);
+}
+.home-btn:hover::before { transform: translateX(0); }
+.home-btn:hover { color: var(--black); }
+.home-btn span { position: relative; z-index: 1; }
+
+/* Glitch text effect on 404 nums occasionally */
+@keyframes glitchText {
+  0%,90%,100% { transform: none; opacity: 1; }
+  92% { transform: translate(-3px, 1px) skewX(-5deg); opacity: 0.8; clip-path: inset(20% 0 60% 0); }
+  94% { transform: translate(3px, -1px) skewX(3deg); opacity: 0.9; clip-path: inset(60% 0 10% 0); }
+  96% { transform: none; clip-path: none; }
+}
+.num { animation: fadeUp 0.9s cubic-bezier(.77,0,.175,1) both, glitchText 8s ease-in-out infinite; }
+.num:nth-child(1) { animation-delay: 0.05s, 1s; }
+.num:nth-child(3) { animation-delay: 0.25s, 3.5s; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* MUTE TOGGLE */
+.mute-btn {
+  position: fixed;
+  bottom: 2rem; right: 2.5rem;
+  font-family: var(--mono);
+  font-size: 0.55rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--gray);
+  background: none;
+  border: 1px solid var(--border);
+  padding: 0.5rem 1rem;
+  cursor: none;
+  transition: color 0.2s, border-color 0.2s;
+  z-index: 600;
+  display: flex; align-items: center; gap: 0.5rem;
+}
+.mute-btn:hover { color: var(--white); border-color: rgba(255,255,255,0.3); }
+
+@media (max-width: 600px) {
+  nav { padding: 1.2rem 1.5rem; }
+  .cursor { display: none; }
+  body { cursor: auto; }
+  .home-btn { cursor: pointer; }
+  .mute-btn { cursor: pointer; }
+  .num { font-size: clamp(4rem, 20vw, 8rem); }
+  .dial-wrap { width: clamp(4rem, 20vw, 8rem); height: clamp(4rem, 20vw, 8rem); }
+}
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<canvas id="static-canvas"></canvas>
+<div class="scanlines"></div>
+<div class="glitch-line"></div>
+
+<nav>
+  <a class="nav-logo" href="/">FALCON</a>
+  <div class="nav-status">
+    <span class="status-dot"></span>
+    Signal Lost
+  </div>
+</nav>
+
+<div class="stage">
+
+  <!-- 404 with radio dial -->
+  <div class="four-oh-four">
+    <span class="num">4</span>
+    <div class="dial-wrap">
+      <div class="freq-ring"></div>
+      <div class="dial-outer" id="dial-outer">
+        <!-- ticks generated by JS -->
+      </div>
+      <div class="dial-inner">
+        <div class="dial-needle">
+          <div class="dial-center"></div>
+        </div>
+      </div>
+    </div>
+    <span class="num">4</span>
+  </div>
+
+  <!-- Idle waveform -->
+  <div class="waveform" id="waveform"></div>
+
+  <p class="signal-label">Error 404</p>
+  <h1 class="headline">We've lost the signal.</h1>
+  <p class="subline">This frequency isn't broadcasting.<br>The page you're looking for doesn't exist<br>or has moved to a new channel.</p>
+
+  <p class="freq-readout">FM &nbsp;<span class="freq-num" id="freqDisplay">---.--</span> MHz &nbsp;·&nbsp; NO CARRIER</p>
+
+  <a class="home-btn" href="/"><span>&#8592;&nbsp; Return to Falcon</span></a>
+
+</div>
+
+<button class="mute-btn" id="muteBtn">
+  <span id="muteIcon">&#9632;</span>
+  <span id="muteLabel">Mute Static</span>
+</button>
+
+<script>
+// ── CURSOR ──
+const cursor = document.getElementById('cursor');
+document.addEventListener('mousemove', e => {
+  cursor.style.left = e.clientX + 'px';
+  cursor.style.top = e.clientY + 'px';
+});
+document.querySelectorAll('a, button').forEach(el => {
+  el.addEventListener('mouseenter', () => cursor.classList.add('expand'));
+  el.addEventListener('mouseleave', () => cursor.classList.remove('expand'));
+});
+
+// ── DIAL TICKS ──
+const dialOuter = document.getElementById('dial-outer');
+for (let i = 0; i < 24; i++) {
+  const tick = document.createElement('div');
+  tick.className = 'dial-tick';
+  tick.style.transform = `rotate(${i * 15}deg)`;
+  dialOuter.appendChild(tick);
+}
+
+// ── WAVEFORM BARS ──
+const waveform = document.getElementById('waveform');
+for (let i = 0; i < 28; i++) {
+  const b = document.createElement('div');
+  b.className = 'wbar';
+  b.style.height = (Math.random() * 6 + 4) + 'px';
+  waveform.appendChild(b);
+}
+
+// ── FREQ DISPLAY FLICKER ──
+const freqDisplay = document.getElementById('freqDisplay');
+const freqs = ['101.40', '98.--', '---.-5', '104.20', '---.--', '99.80', '107.--'];
+let freqIdx = 0;
+setInterval(() => {
+  freqIdx = (freqIdx + 1) % freqs.length;
+  freqDisplay.textContent = freqs[freqIdx];
+}, 800);
+
+// ── STATIC AUDIO (Web Audio API) ──
+let audioCtx = null;
+let staticSource = null;
+let gainNode = null;
+let muted = false;
+let staticStarted = false;
+
+function createStatic() {
+  try {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const bufferSize = audioCtx.sampleRate * 2;
+    const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = (Math.random() * 2 - 1) * 0.06; // subtle
+    }
+    const source = audioCtx.createBufferSource();
+    source.buffer = buffer;
+    source.loop = true;
+
+    gainNode = audioCtx.createGain();
+    gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+    gainNode.gain.linearRampToValueAtTime(1, audioCtx.currentTime + 0.8); // fade in
+
+    // Low-pass filter so it feels like radio static, not harsh noise
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.value = 2400;
+    filter.Q.value = 0.6;
+
+    source.connect(filter);
+    filter.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+    source.start(0);
+    staticSource = source;
+    staticStarted = true;
+  } catch(e) {
+    // No audio support — fail silently
+  }
+}
+
+// Start on first user interaction (browser autoplay policy)
+function startStaticOnInteraction() {
+  if (staticStarted) return;
+  createStatic();
+  document.removeEventListener('click', startStaticOnInteraction);
+  document.removeEventListener('mousemove', startStaticOnInteraction);
+  document.removeEventListener('keydown', startStaticOnInteraction);
+}
+
+// Try immediate (works in some browsers), fallback to interaction
+window.addEventListener('load', () => {
+  try {
+    createStatic();
+  } catch(e) {
+    document.addEventListener('mousemove', startStaticOnInteraction, { once: true });
+    document.addEventListener('click', startStaticOnInteraction, { once: true });
+    document.addEventListener('keydown', startStaticOnInteraction, { once: true });
+  }
+});
+
+// ── MUTE TOGGLE ──
+const muteBtn = document.getElementById('muteBtn');
+const muteIcon = document.getElementById('muteIcon');
+const muteLabel = document.getElementById('muteLabel');
+
+muteBtn.addEventListener('click', () => {
+  if (!staticStarted) { createStatic(); return; }
+  muted = !muted;
+  if (gainNode) {
+    gainNode.gain.cancelScheduledValues(audioCtx.currentTime);
+    gainNode.gain.linearRampToValueAtTime(muted ? 0 : 1, audioCtx.currentTime + 0.3);
+  }
+  muteIcon.textContent = muted ? '▶' : '■';
+  muteLabel.textContent = muted ? 'Unmute' : 'Mute Static';
+});
+
+// ── CANVAS STATIC (visual) ──
+const canvas = document.getElementById('static-canvas');
+const ctx = canvas.getContext('2d');
+
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+let staticOpacity = 0;
+let staticFading = true;
+
+// Show canvas static for first 1.5s then fade
+canvas.classList.add('active');
+setTimeout(() => {
+  canvas.style.transition = 'opacity 1.5s ease';
+  canvas.style.opacity = '0';
+  setTimeout(() => canvas.classList.remove('active'), 1500);
+}, 1200);
+
+function drawStatic() {
+  if (!canvas.classList.contains('active') && parseFloat(canvas.style.opacity || '1') <= 0.01) {
+    requestAnimationFrame(drawStatic);
+    return;
+  }
+  const w = canvas.width, h = canvas.height;
+  const imageData = ctx.createImageData(w, h);
+  const data = imageData.data;
+  for (let i = 0; i < data.length; i += 4) {
+    const val = Math.random() < 0.5 ? 0 : Math.floor(Math.random() * 60);
+    data[i]   = val;
+    data[i+1] = val;
+    data[i+2] = val;
+    data[i+3] = Math.floor(Math.random() * 80 + 20);
+  }
+  ctx.putImageData(imageData, 0, 0);
+  requestAnimationFrame(drawStatic);
+}
+drawStatic();
+</script>
+</body>
+</html>
