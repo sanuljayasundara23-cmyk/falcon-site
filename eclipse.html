@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eclipse by Falcon — Online Classroom Platform</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='32' fill='%23000'/%3E%3Ccircle cx='32' cy='32' r='20' fill='none' stroke='%23cc0000' stroke-width='2'/%3E%3Ccircle cx='32' cy='32' r='8' fill='%23cc0000'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Inter:wght@200;300;400;600&display=swap" rel="stylesheet">
+<style>
+@import url('https://fonts.cdnfonts.com/css/anurati');
+@font-face {
+  font-family: 'Anurati';
+  src: url('https://cdn.jsdelivr.net/gh/kaberikram/anurati@main/font/Anurati.otf') format('opentype'),
+       url('https://raw.githubusercontent.com/kaberikram/anurati/master/font/Anurati.otf') format('opentype');
+  font-display: swap;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --black: #000000;
+  --deep: #050505;
+  --white: #ffffff;
+  --red: #cc0000;
+  --red-dim: #7a0000;
+  --red-glow: rgba(204,0,0,0.15);
+  --gray: #555555;
+  --gray-light: #999999;
+  --border: rgba(255,255,255,0.06);
+  --border-red: rgba(204,0,0,0.25);
+  --logo: 'Anurati', sans-serif;
+  --body: 'Inter', sans-serif;
+  --mono: 'Space Mono', monospace;
+}
+
+html { scroll-behavior: smooth; }
+body {
+  background: var(--black);
+  color: var(--white);
+  font-family: var(--body);
+  font-weight: 300;
+  overflow-x: hidden;
+  cursor: none;
+}
+
+/* CURSOR */
+.cursor {
+  position: fixed; top: 0; left: 0; z-index: 9999;
+  width: 8px; height: 8px;
+  background: var(--red);
+  border-radius: 50%;
+  pointer-events: none;
+  transform: translate(-50%,-50%);
+  transition: width 0.2s, height 0.2s, background 0.2s;
+  mix-blend-mode: normal;
+  box-shadow: 0 0 12px var(--red), 0 0 24px var(--red-dim);
+}
+.cursor.expand { width: 36px; height: 36px; background: transparent; border: 1px solid var(--red); box-shadow: 0 0 20px var(--red); }
+
+/* NOISE */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 1000;
+  pointer-events: none;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+::-webkit-scrollbar { width: 2px; }
+::-webkit-scrollbar-track { background: var(--black); }
+::-webkit-scrollbar-thumb { background: var(--red); }
+
+/* NAV */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 500;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1.5rem 3rem;
+  border-bottom: 1px solid var(--border);
+  background: rgba(0,0,0,0.85);
+  backdrop-filter: blur(20px);
+}
+
+.nav-brand { display: flex; align-items: center; gap: 1.2rem; text-decoration: none; }
+.nav-logo-text {
+  font-family: var(--logo);
+  font-size: 1.2rem;
+  letter-spacing: 0.2em;
+  color: var(--white);
+}
+.nav-sub {
+  font-family: var(--mono);
+  font-size: 0.55rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--red);
+  border-left: 1px solid var(--border-red);
+  padding-left: 1.2rem;
+}
+
+.nav-links { display: flex; gap: 2.5rem; list-style: none; }
+.nav-links a {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gray);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.nav-links a:hover { color: var(--white); }
+
+.nav-right { display: flex; align-items: center; gap: 1.5rem; }
+.nav-falcon {
+  font-family: var(--mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gray);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.nav-falcon:hover { color: var(--gray-light); }
+
+.nav-cta {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  padding: 0.55rem 1.3rem;
+  border: 1px solid var(--red);
+  color: var(--red);
+  text-decoration: none;
+  position: relative; overflow: hidden;
+  transition: color 0.3s;
+}
+.nav-cta::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: var(--red);
+  transform: translateX(-101%);
+  transition: transform 0.3s cubic-bezier(.77,0,.175,1);
+}
+.nav-cta:hover::before { transform: translateX(0); }
+.nav-cta:hover { color: var(--white); }
+.nav-cta span { position: relative; z-index: 1; }
+
+/* HERO */
+#hero {
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  justify-content: center; align-items: center;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  padding: 8rem 3rem 4rem;
+}
+
+/* Stars */
+.stars {
+  position: absolute; inset: 0; z-index: 0;
+  background-image:
+    radial-gradient(1px 1px at 10% 20%, rgba(255,255,255,0.6) 0%, transparent 100%),
+    radial-gradient(1px 1px at 25% 60%, rgba(255,255,255,0.4) 0%, transparent 100%),
+    radial-gradient(1px 1px at 40% 15%, rgba(255,255,255,0.5) 0%, transparent 100%),
+    radial-gradient(1px 1px at 55% 80%, rgba(255,255,255,0.3) 0%, transparent 100%),
+    radial-gradient(1px 1px at 70% 35%, rgba(255,255,255,0.6) 0%, transparent 100%),
+    radial-gradient(1px 1px at 80% 70%, rgba(255,255,255,0.4) 0%, transparent 100%),
+    radial-gradient(1px 1px at 90% 10%, rgba(255,255,255,0.5) 0%, transparent 100%),
+    radial-gradient(1px 1px at 15% 90%, rgba(255,255,255,0.3) 0%, transparent 100%),
+    radial-gradient(1px 1px at 60% 50%, rgba(255,255,255,0.4) 0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 35% 40%, rgba(255,255,255,0.7) 0%, transparent 100%),
+    radial-gradient(1px 1px at 75% 90%, rgba(255,255,255,0.3) 0%, transparent 100%),
+    radial-gradient(1px 1px at 5% 50%, rgba(255,255,255,0.5) 0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 88% 45%, rgba(255,255,255,0.6) 0%, transparent 100%),
+    radial-gradient(1px 1px at 48% 95%, rgba(255,255,255,0.4) 0%, transparent 100%),
+    radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,0.3) 0%, transparent 100%);
+  animation: starDrift 60s linear infinite;
+}
+@keyframes starDrift {
+  from { transform: translateY(0); }
+  to   { transform: translateY(-40px); }
+}
+
+/* Eclipse orb */
+.eclipse-orb {
+  position: absolute;
+  width: 500px; height: 500px;
+  border-radius: 50%;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 0;
+  pointer-events: none;
+}
+.eclipse-orb::before {
+  content: '';
+  position: absolute; inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle at 65% 40%,
+    transparent 38%,
+    rgba(204,0,0,0.03) 45%,
+    rgba(204,0,0,0.08) 55%,
+    rgba(204,0,0,0.03) 65%,
+    transparent 75%);
+  animation: eclipseRotate 20s linear infinite;
+}
+.eclipse-orb::after {
+  content: '';
+  position: absolute; inset: -2px;
+  border-radius: 50%;
+  border: 1px solid rgba(204,0,0,0.12);
+  box-shadow:
+    0 0 60px rgba(204,0,0,0.06),
+    0 0 120px rgba(204,0,0,0.03),
+    inset 0 0 60px rgba(204,0,0,0.04);
+  animation: eclipsePulse 4s ease-in-out infinite alternate;
+}
+@keyframes eclipseRotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes eclipsePulse {
+  from { box-shadow: 0 0 40px rgba(204,0,0,0.06), inset 0 0 40px rgba(204,0,0,0.04); }
+  to   { box-shadow: 0 0 100px rgba(204,0,0,0.12), inset 0 0 80px rgba(204,0,0,0.08); }
+}
+
+/* Red ring orbiting */
+.orbit-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid rgba(204,0,0,0.1);
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  pointer-events: none;
+  z-index: 0;
+}
+.orbit-ring:nth-child(1) { width: 600px; height: 600px; animation: orbitSpin 30s linear infinite; }
+.orbit-ring:nth-child(2) { width: 750px; height: 750px; animation: orbitSpin 50s linear infinite reverse; border-color: rgba(204,0,0,0.06); }
+@keyframes orbitSpin { from { transform: translate(-50%,-50%) rotate(0deg); } to { transform: translate(-50%,-50%) rotate(360deg); } }
+
+/* Orbit dot */
+.orbit-ring:nth-child(1)::after {
+  content: '';
+  position: absolute;
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--red);
+  top: -2.5px; left: 50%;
+  transform: translateX(-50%);
+  box-shadow: 0 0 8px var(--red), 0 0 16px var(--red-dim);
+}
+
+.hero-content { position: relative; z-index: 2; }
+
+.hero-eyebrow {
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--red);
+  margin-bottom: 2.5rem;
+  display: flex; align-items: center; justify-content: center; gap: 1rem;
+  animation: fadeUp 0.9s 0.1s both;
+}
+.hero-eyebrow::before, .hero-eyebrow::after {
+  content: ''; width: 40px; height: 1px; background: var(--red); display: block;
+}
+
+.hero-title {
+  font-family: var(--logo);
+  font-size: clamp(4rem, 13vw, 11rem);
+  letter-spacing: 0.12em;
+  line-height: 0.95;
+  animation: fadeUp 0.9s 0.2s both;
+}
+
+.hero-title .by {
+  display: block;
+  font-family: var(--mono);
+  font-size: clamp(0.6rem, 1.5vw, 0.85rem);
+  letter-spacing: 0.35em;
+  color: var(--gray);
+  margin: 1.2rem 0 0.8rem;
+  font-weight: 400;
+  animation: fadeUp 0.9s 0.35s both;
+}
+
+.hero-title .falcon-ref {
+  display: block;
+  font-family: var(--logo);
+  font-size: clamp(1.4rem, 4vw, 3.5rem);
+  letter-spacing: 0.2em;
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(255,255,255,0.25);
+  animation: fadeUp 0.9s 0.4s both;
+}
+
+.hero-desc {
+  max-width: 480px;
+  margin: 3rem auto 0;
+  font-size: 0.92rem;
+  color: var(--gray-light);
+  line-height: 1.85;
+  font-weight: 300;
+  animation: fadeUp 0.9s 0.5s both;
+}
+
+.hero-actions {
+  display: flex; gap: 1rem; justify-content: center; margin-top: 3rem;
+  animation: fadeUp 0.9s 0.65s both;
+}
+
+.btn-red {
+  padding: 1rem 2.4rem;
+  background: var(--red);
+  color: var(--white);
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  text-decoration: none;
+  position: relative; overflow: hidden;
+  transition: background 0.3s;
+  box-shadow: 0 0 20px rgba(204,0,0,0.3);
+}
+.btn-red:hover { background: #ff1a1a; box-shadow: 0 0 30px rgba(204,0,0,0.5); }
+
+.btn-ghost-red {
+  padding: 1rem 2rem;
+  border: 1px solid var(--border-red);
+  color: var(--gray-light);
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: border-color 0.3s, color 0.3s;
+}
+.btn-ghost-red:hover { border-color: var(--red); color: var(--white); }
+
+/* Stats strip */
+.stats-strip {
+  display: flex; justify-content: center; gap: 0;
+  margin-top: 6rem;
+  border: 1px solid var(--border);
+  position: relative; z-index: 2;
+  animation: fadeUp 0.9s 0.8s both;
+}
+.stat-item {
+  padding: 1.8rem 3.5rem;
+  border-right: 1px solid var(--border);
+  text-align: center;
+}
+.stat-item:last-child { border-right: none; }
+.stat-num {
+  font-family: var(--logo);
+  font-size: 2rem;
+  letter-spacing: 0.06em;
+  color: var(--red);
+  display: block;
+}
+.stat-lbl {
+  font-family: var(--mono);
+  font-size: 0.55rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gray);
+  margin-top: 0.4rem;
+  display: block;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(22px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* SECTION BASE */
+.section {
+  padding: 8rem 3rem;
+  border-top: 1px solid var(--border);
+  position: relative;
+}
+
+.sec-eyebrow {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--red);
+  margin-bottom: 1rem;
+  display: flex; align-items: center; gap: 0.8rem;
+}
+.sec-eyebrow::before { content: ''; width: 28px; height: 1px; background: var(--red); display: block; }
+
+.sec-title {
+  font-family: var(--body);
+  font-size: clamp(2.2rem, 4.5vw, 3.8rem);
+  font-weight: 200;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin-bottom: 1rem;
+}
+.sec-title strong { font-weight: 600; }
+
+/* FEATURES */
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  border: 1px solid var(--border);
+  margin-top: 4rem;
+}
+
+.feat {
+  padding: 3rem 2.5rem;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+  transition: background 0.4s;
+}
+.feat:nth-child(3n) { border-right: none; }
+.feat:nth-child(4), .feat:nth-child(5), .feat:nth-child(6) { border-bottom: none; }
+.feat:hover { background: rgba(204,0,0,0.03); }
+
+.feat::before {
+  content: '';
+  position: absolute; top: 0; left: 0;
+  width: 100%; height: 1px;
+  background: var(--red);
+  transform: scaleX(0); transform-origin: left;
+  transition: transform 0.4s cubic-bezier(.77,0,.175,1);
+}
+.feat:hover::before { transform: scaleX(1); }
+
+.feat-icon {
+  font-size: 1.4rem;
+  margin-bottom: 1.5rem;
+  display: block;
+}
+.feat-num {
+  font-family: var(--mono);
+  font-size: 0.55rem;
+  letter-spacing: 0.14em;
+  color: var(--red);
+  margin-bottom: 1rem;
+  display: block;
+  opacity: 0.6;
+}
+.feat-name {
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin-bottom: 0.8rem;
+}
+.feat-desc {
+  font-size: 0.82rem;
+  color: var(--gray-light);
+  line-height: 1.8;
+}
+
+/* PRICING */
+.pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  border: 1px solid var(--border);
+  margin-top: 4rem;
+}
+
+.price-card {
+  padding: 3rem 2.5rem;
+  border-right: 1px solid var(--border);
+  position: relative;
+  transition: background 0.4s;
+}
+.price-card:last-child { border-right: none; }
+.price-card.featured {
+  background: var(--red);
+  border-right-color: rgba(255,255,255,0.15);
+}
+
+.price-tier {
+  font-family: var(--mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gray);
+  margin-bottom: 2rem;
+  display: block;
+}
+.price-card.featured .price-tier { color: rgba(255,255,255,0.6); }
+
+.price-amount {
+  font-family: var(--logo);
+  font-size: 3rem;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.3rem;
+  display: block;
+}
+.price-card.featured .price-amount { color: var(--white); }
+
+.price-period {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  color: var(--gray);
+  margin-bottom: 2.5rem;
+  display: block;
+}
+.price-card.featured .price-period { color: rgba(255,255,255,0.5); }
+
+.price-list {
+  list-style: none;
+  display: flex; flex-direction: column; gap: 1rem;
+  margin-bottom: 3rem;
+}
+.price-list li {
+  font-size: 0.82rem;
+  color: var(--gray-light);
+  display: flex; gap: 0.8rem; align-items: flex-start;
+}
+.price-card.featured .price-list li { color: rgba(255,255,255,0.85); }
+.price-list li.off { color: var(--gray); opacity: 0.4; }
+.price-list li .check { color: var(--red); flex-shrink: 0; }
+.price-card.featured .price-list li .check { color: var(--white); }
+
+.price-btn {
+  display: block; text-align: center;
+  padding: 0.9rem;
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border: 1px solid var(--border-red);
+  color: var(--red);
+  transition: all 0.3s;
+}
+.price-btn:hover { background: var(--red); color: var(--white); border-color: var(--red); }
+.price-card.featured .price-btn {
+  background: var(--white);
+  color: var(--red);
+  border-color: var(--white);
+}
+.price-card.featured .price-btn:hover { background: #111; color: var(--white); border-color: #111; }
+
+/* SIGNUP */
+.signup-wrap {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6rem;
+}
+
+.signup-left p {
+  font-size: 0.92rem;
+  color: var(--gray-light);
+  line-height: 1.85;
+  margin-top: 1.5rem;
+  max-width: 380px;
+}
+
+.signup-perks {
+  margin-top: 3rem;
+  display: flex; flex-direction: column; gap: 0;
+}
+.perk {
+  display: flex; align-items: center; gap: 1rem;
+  padding: 1.2rem 0;
+  border-bottom: 1px solid var(--border);
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  color: var(--gray-light);
+}
+.perk:last-child { border-bottom: none; }
+.perk-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--red);
+  flex-shrink: 0;
+  box-shadow: 0 0 6px var(--red);
+}
+
+/* Form */
+.eclipse-form { display: flex; flex-direction: column; gap: 0; }
+.form-row {
+  display: flex; flex-direction: column;
+  border-bottom: 1px solid var(--border);
+  padding: 1.3rem 0;
+  transition: border-color 0.2s;
+}
+.form-row:focus-within { border-bottom-color: var(--red); }
+.form-row label {
+  font-family: var(--mono);
+  font-size: 0.55rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--gray);
+  margin-bottom: 0.5rem;
+}
+.form-row input,
+.form-row textarea,
+.form-row select {
+  background: transparent;
+  border: none; outline: none;
+  color: var(--white);
+  font-family: var(--body);
+  font-size: 0.92rem;
+  font-weight: 300;
+  resize: none;
+  appearance: none;
+}
+.form-row select option { background: #111; }
+.form-row input::placeholder,
+.form-row textarea::placeholder { color: var(--gray); }
+
+.form-submit {
+  margin-top: 2.5rem;
+  padding: 1.1rem 2.8rem;
+  background: var(--red);
+  color: var(--white);
+  border: none;
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-weight: 700;
+  cursor: none;
+  align-self: flex-start;
+  position: relative; overflow: hidden;
+  transition: background 0.3s;
+  box-shadow: 0 0 20px rgba(204,0,0,0.25);
+}
+.form-submit:hover { background: #ff1a1a; box-shadow: 0 0 30px rgba(204,0,0,0.4); }
+.form-submit span { position: relative; z-index: 1; }
+
+/* FOOTER */
+footer {
+  border-top: 1px solid var(--border);
+  padding: 2.5rem 3rem;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.footer-brand { display: flex; align-items: center; gap: 1rem; }
+.footer-logo { font-family: var(--logo); font-size: 1.1rem; letter-spacing: 0.2em; }
+.footer-by {
+  font-family: var(--mono);
+  font-size: 0.55rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--gray);
+  border-left: 1px solid var(--border);
+  padding-left: 1rem;
+}
+.footer-by a { color: var(--red); text-decoration: none; }
+footer p {
+  font-family: var(--mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
+  color: var(--gray);
+}
+
+/* REVEAL */
+.reveal {
+  opacity: 0; transform: translateY(28px);
+  transition: opacity 0.8s cubic-bezier(.77,0,.175,1), transform 0.8s cubic-bezier(.77,0,.175,1);
+}
+.reveal.on { opacity: 1; transform: none; }
+.rd1 { transition-delay: 0.1s; }
+.rd2 { transition-delay: 0.2s; }
+.rd3 { transition-delay: 0.3s; }
+
+/* RESPONSIVE */
+@media (max-width: 960px) {
+  nav { padding: 1.2rem 1.5rem; }
+  .nav-links { display: none; }
+  .section { padding: 5rem 1.5rem; }
+  .features-grid { grid-template-columns: 1fr; }
+  .feat { border-right: none !important; }
+  .feat:nth-child(4), .feat:nth-child(5) { border-bottom: 1px solid var(--border); }
+  .pricing-grid { grid-template-columns: 1fr; }
+  .price-card { border-right: none; border-bottom: 1px solid var(--border); }
+  .price-card:last-child { border-bottom: none; }
+  .signup-wrap { grid-template-columns: 1fr; gap: 3rem; }
+  footer { flex-direction: column; gap: 1rem; padding: 2rem 1.5rem; }
+  .cursor { display: none; }
+  body { cursor: auto; }
+  .form-submit { cursor: pointer; }
+  .stats-strip { flex-wrap: wrap; }
+  .stat-item { border-bottom: 1px solid var(--border); }
+}
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-brand" href="#">
+    <span class="nav-logo-text">ECLIPSE</span>
+    <span class="nav-sub">by Falcon</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#features">Features</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+    <li><a href="#signup">Sign Up</a></li>
+  </ul>
+  <div class="nav-right">
+    <a class="nav-falcon" href="/">&#8592; Back to Falcon</a>
+    <a class="nav-cta" href="#signup"><span>Get Started</span></a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="stars"></div>
+  <div class="orbit-ring"></div>
+  <div class="orbit-ring"></div>
+  <div class="eclipse-orb"></div>
+
+  <div class="hero-content">
+    <p class="hero-eyebrow">Online Classroom Platform</p>
+
+    <h1 class="hero-title">
+      ECLIPSE
+      <span class="by">a product of</span>
+      <span class="falcon-ref">FALCON</span>
+    </h1>
+
+    <p class="hero-desc">The intelligent online classroom platform built for educators who demand more. Live sessions, deep analytics, and an experience your students will never forget.</p>
+
+    <div class="hero-actions">
+      <a class="btn-red" href="#signup">Start for Free</a>
+      <a class="btn-ghost-red" href="#features">See Features</a>
+    </div>
+
+    <div class="stats-strip">
+      <div class="stat-item">
+        <span class="stat-num">∞</span>
+        <span class="stat-lbl">Student Capacity</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num">4K</span>
+        <span class="stat-lbl">Video Quality</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num">24/7</span>
+        <span class="stat-lbl">Uptime</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num">99%</span>
+        <span class="stat-lbl">Reliability</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="features" class="section">
+  <div class="reveal">
+    <p class="sec-eyebrow">Features</p>
+    <h2 class="sec-title">Everything you need.<br><strong>Nothing you don't.</strong></h2>
+  </div>
+
+  <div class="features-grid">
+    <div class="feat reveal rd1">
+      <span class="feat-icon">🎥</span>
+      <span class="feat-num">01 /</span>
+      <h3 class="feat-name">Live HD Sessions</h3>
+      <p class="feat-desc">Run real-time classes with crystal-clear 4K video and lossless audio. Engage students with a classroom that feels in-person.</p>
+    </div>
+    <div class="feat reveal rd2">
+      <span class="feat-icon">⏺</span>
+      <span class="feat-num">02 /</span>
+      <h3 class="feat-name">Auto Recording</h3>
+      <p class="feat-desc">Every session recorded automatically. Students replay lessons on demand, forever archived in their portal.</p>
+    </div>
+    <div class="feat reveal rd3">
+      <span class="feat-icon">📊</span>
+      <span class="feat-num">03 /</span>
+      <h3 class="feat-name">Deep Analytics</h3>
+      <p class="feat-desc">Track attendance, engagement, quiz scores, and progress per student. Real-time dashboards that actually tell you something.</p>
+    </div>
+    <div class="feat reveal rd1">
+      <span class="feat-icon">📂</span>
+      <span class="feat-num">04 /</span>
+      <h3 class="feat-name">Course Materials</h3>
+      <p class="feat-desc">Upload slides, PDFs, videos, and assignments. Organise by module. Students access everything in one clean portal.</p>
+    </div>
+    <div class="feat reveal rd2">
+      <span class="feat-icon">✏️</span>
+      <span class="feat-num">05 /</span>
+      <h3 class="feat-name">Quizzes & Assignments</h3>
+      <p class="feat-desc">Build quizzes, set deadlines, auto-grade submissions. Focus on teaching — Eclipse handles the admin.</p>
+    </div>
+    <div class="feat reveal rd3">
+      <span class="feat-icon">🔐</span>
+      <span class="feat-num">06 /</span>
+      <h3 class="feat-name">Private & Secure</h3>
+      <p class="feat-desc">End-to-end encrypted sessions. Private classroom links, student verification, and enterprise-grade security built in.</p>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section id="pricing" class="section">
+  <div class="reveal">
+    <p class="sec-eyebrow">Pricing</p>
+    <h2 class="sec-title">Transparent pricing.<br><strong>No surprises.</strong></h2>
+  </div>
+
+  <div class="pricing-grid reveal">
+    <div class="price-card">
+      <span class="price-tier">01 / Starter</span>
+      <span class="price-amount">FREE</span>
+      <span class="price-period">Forever free</span>
+      <ul class="price-list">
+        <li><span class="check">✓</span> 1 Classroom</li>
+        <li><span class="check">✓</span> Up to 20 Students</li>
+        <li><span class="check">✓</span> Live Sessions</li>
+        <li><span class="check">✓</span> Session Recordings</li>
+        <li class="off"><span class="check">✗</span> Analytics</li>
+        <li class="off"><span class="check">✗</span> Custom Branding</li>
+        <li class="off"><span class="check">✗</span> Priority Support</li>
+      </ul>
+      <a class="price-btn" href="#signup">Get Started</a>
+    </div>
+
+    <div class="price-card featured">
+      <span class="price-tier">02 / Pro &nbsp;★ POPULAR</span>
+      <span class="price-amount">$19<span style="font-family:var(--mono);font-size:1rem;font-weight:400;">/mo</span></span>
+      <span class="price-period">Billed monthly</span>
+      <ul class="price-list">
+        <li><span class="check">✓</span> 10 Classrooms</li>
+        <li><span class="check">✓</span> Up to 200 Students</li>
+        <li><span class="check">✓</span> Live Sessions</li>
+        <li><span class="check">✓</span> Session Recordings</li>
+        <li><span class="check">✓</span> Full Analytics</li>
+        <li><span class="check">✓</span> Custom Branding</li>
+        <li class="off"><span class="check">✗</span> Priority Support</li>
+      </ul>
+      <a class="price-btn" href="#signup">Get Started</a>
+    </div>
+
+    <div class="price-card">
+      <span class="price-tier">03 / Enterprise</span>
+      <span class="price-amount">$49<span style="font-family:var(--mono);font-size:1rem;font-weight:400;">/mo</span></span>
+      <span class="price-period">Billed monthly</span>
+      <ul class="price-list">
+        <li><span class="check">✓</span> Unlimited Classrooms</li>
+        <li><span class="check">✓</span> Unlimited Students</li>
+        <li><span class="check">✓</span> Live Sessions</li>
+        <li><span class="check">✓</span> Session Recordings</li>
+        <li><span class="check">✓</span> Full Analytics</li>
+        <li><span class="check">✓</span> Custom Branding</li>
+        <li><span class="check">✓</span> Priority Support</li>
+      </ul>
+      <a class="price-btn" href="#signup">Get Started</a>
+    </div>
+  </div>
+</section>
+
+<!-- SIGNUP -->
+<section id="signup" class="section">
+  <div class="signup-wrap">
+    <div class="signup-left reveal">
+      <p class="sec-eyebrow">Sign Up</p>
+      <h2 class="sec-title">Launch your<br><strong>classroom today.</strong></h2>
+      <p>Fill in the form and we'll have your Eclipse classroom ready within 24 hours. Start free, scale when you're ready.</p>
+      <div class="signup-perks">
+        <div class="perk"><span class="perk-dot"></span> Free forever on the Starter plan</div>
+        <div class="perk"><span class="perk-dot"></span> No credit card required</div>
+        <div class="perk"><span class="perk-dot"></span> Setup assistance included</div>
+        <div class="perk"><span class="perk-dot"></span> Cancel anytime</div>
+      </div>
+    </div>
+
+    <div class="eclipse-form reveal rd2">
+      <div class="form-row">
+        <label>Full Name</label>
+        <input type="text" id="ec-name" placeholder="Your full name">
+      </div>
+      <div class="form-row">
+        <label>Email Address</label>
+        <input type="email" id="ec-email" placeholder="you@example.com">
+      </div>
+      <div class="form-row">
+        <label>Phone Number</label>
+        <input type="tel" id="ec-phone" placeholder="+94 77 000 0000">
+      </div>
+      <div class="form-row">
+        <label>Institution / Organisation</label>
+        <input type="text" id="ec-org" placeholder="School, university, or personal">
+      </div>
+      <div class="form-row">
+        <label>Subject / Course</label>
+        <input type="text" id="ec-subject" placeholder="e.g. Mathematics, Music Production...">
+      </div>
+      <div class="form-row">
+        <label>Plan</label>
+        <select id="ec-plan">
+          <option value="">Select a plan...</option>
+          <option>Starter — Free</option>
+          <option>Pro — $19/mo</option>
+          <option>Enterprise — $49/mo</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>Expected Number of Students</label>
+        <select id="ec-students">
+          <option value="">Select...</option>
+          <option>1 – 20</option>
+          <option>21 – 50</option>
+          <option>51 – 200</option>
+          <option>200+</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>Additional Notes</label>
+        <textarea rows="3" id="ec-notes" placeholder="Anything you'd like us to know..."></textarea>
+      </div>
+      <button class="form-submit" id="eclipseSubmit"><span>Launch My Classroom &#8594;</span></button>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-brand">
+    <span class="footer-logo">ECLIPSE</span>
+    <span class="footer-by">by <a href="/">Falcon</a></span>
+  </div>
+  <p>© 2026 Eclipse by Falcon. All rights reserved.</p>
+  <p>falcon.incoroporated@gmail.com &nbsp;·&nbsp; +94 0740938659</p>
+</footer>
+
+<script>
+// Cursor
+const cursor = document.getElementById('cursor');
+document.addEventListener('mousemove', e => {
+  cursor.style.left = e.clientX + 'px';
+  cursor.style.top = e.clientY + 'px';
+});
+document.querySelectorAll('a, button, input, select, textarea, .feat, .price-card').forEach(el => {
+  el.addEventListener('mouseenter', () => cursor.classList.add('expand'));
+  el.addEventListener('mouseleave', () => cursor.classList.remove('expand'));
+});
+
+// Scroll reveal
+const reveals = document.querySelectorAll('.reveal');
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('on'); io.unobserve(e.target); } });
+}, { threshold: 0.1 });
+reveals.forEach(el => io.observe(el));
+
+// Nav blur on scroll
+window.addEventListener('scroll', () => {
+  document.querySelector('nav').style.background =
+    window.scrollY > 60 ? 'rgba(0,0,0,0.95)' : 'rgba(0,0,0,0.85)';
+});
+
+// Form submit
+document.getElementById('eclipseSubmit').addEventListener('click', async function() {
+  const name = document.getElementById('ec-name').value.trim();
+  const email = document.getElementById('ec-email').value.trim();
+  const phone = document.getElementById('ec-phone').value.trim();
+  const org = document.getElementById('ec-org').value.trim();
+  const subject_val = document.getElementById('ec-subject').value.trim();
+  const plan = document.getElementById('ec-plan').value;
+  const students = document.getElementById('ec-students').value;
+  const notes = document.getElementById('ec-notes').value.trim();
+  if (!name || !email) { alert('Please fill in your name and email.'); return; }
+  this.querySelector('span').textContent = 'Sending...';
+  this.style.pointerEvents = 'none';
+  try {
+    const res = await fetch('https://formspree.io/f/mpqnegpq', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ name, email, phone, organisation: org, subject: subject_val, plan, students, notes, _subject: 'Eclipse Classroom Registration: ' + name })
+    });
+    if (res.ok) {
+      this.querySelector('span').textContent = '✓ Registered! We will be in touch.';
+      this.style.background = '#fff'; this.style.color = '#000';
+      ['ec-name','ec-email','ec-phone','ec-org','ec-subject','ec-notes'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('ec-plan').value = '';
+      document.getElementById('ec-students').value = '';
+    } else { throw new Error(); }
+  } catch(e) {
+    this.querySelector('span').textContent = '✗ Error — Try Again';
+    this.style.background = '#7a0000'; this.style.color = '#fff';
+  }
+  setTimeout(() => { this.querySelector('span').textContent = 'Launch My Classroom →'; this.style.background=''; this.style.color=''; this.style.pointerEvents=''; }, 4000);
+});
+</script>
+</body>
+</html>
