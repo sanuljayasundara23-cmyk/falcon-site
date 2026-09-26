@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Radio Content Policy — FALCON</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='32' fill='%23000'/%3E%3Ccircle cx='32' cy='32' r='30' fill='none' stroke='%23fff' stroke-width='2'/%3E%3Ctext x='32' y='44' font-family='serif' font-size='36' font-weight='bold' fill='%23fff' text-anchor='middle'%3EF%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+@import url('https://fonts.cdnfonts.com/css/anurati');
+@font-face {
+  font-family: 'Anurati';
+  src: url('https://cdn.jsdelivr.net/gh/kaberikram/anurati@main/font/Anurati.otf') format('opentype');
+  font-display: swap;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --black: #000;
+  --white: #fff;
+  --gray: #888;
+  --gray-dim: #333;
+  --gray-light: #bbb;
+  --border: rgba(255,255,255,0.07);
+  --logo: 'Anurati', sans-serif;
+  --display: 'Syne', sans-serif;
+  --mono: 'Space Mono', monospace;
+}
+
+html { scroll-behavior: smooth; }
+body {
+  background: var(--black);
+  color: var(--white);
+  font-family: var(--display);
+  overflow-x: hidden;
+  cursor: none;
+}
+
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 1000;
+  pointer-events: none; opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.cursor {
+  position: fixed; top: 0; left: 0; z-index: 9999;
+  width: 10px; height: 10px;
+  background: var(--white); border-radius: 50%;
+  pointer-events: none; transform: translate(-50%,-50%);
+  mix-blend-mode: difference;
+  transition: width 0.2s, height 0.2s;
+}
+.cursor.expand { width: 36px; height: 36px; }
+
+::-webkit-scrollbar { width: 2px; }
+::-webkit-scrollbar-track { background: var(--black); }
+::-webkit-scrollbar-thumb { background: var(--white); }
+
+/* NAV */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 500;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1.6rem 3rem;
+  border-bottom: 1px solid var(--border);
+  background: rgba(0,0,0,0.88);
+  backdrop-filter: blur(16px);
+}
+.nav-logo {
+  font-family: var(--logo);
+  font-size: 1.4rem; letter-spacing: 0.18em;
+  color: var(--white); text-decoration: none;
+}
+.nav-back {
+  font-family: var(--mono); font-size: 0.62rem;
+  letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--gray); text-decoration: none;
+  transition: color 0.2s;
+}
+.nav-back:hover { color: var(--white); }
+
+/* HERO */
+.hero {
+  padding: 14rem 3rem 6rem;
+  border-bottom: 1px solid var(--border);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: end;
+}
+
+.hero-left {}
+
+.policy-badge {
+  font-family: var(--mono);
+  font-size: 0.6rem; letter-spacing: 0.22em;
+  text-transform: uppercase; color: var(--gray);
+  margin-bottom: 2rem;
+  display: flex; align-items: center; gap: 0.8rem;
+}
+.policy-badge::before {
+  content: ''; width: 32px; height: 1px;
+  background: var(--gray); display: block;
+}
+
+.hero-title {
+  font-family: var(--logo);
+  font-size: clamp(2.5rem, 6vw, 6rem);
+  letter-spacing: 0.08em; line-height: 1;
+}
+.hero-title .outline {
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(255,255,255,0.25);
+  display: block;
+}
+
+.hero-right {
+  padding-bottom: 0.5rem;
+}
+.hero-meta {
+  display: flex; flex-direction: column; gap: 0;
+  border: 1px solid var(--border);
+}
+.meta-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  font-family: var(--mono); font-size: 0.62rem;
+  letter-spacing: 0.1em;
+}
+.meta-row:last-child { border-bottom: none; }
+.meta-label { color: var(--gray); }
+.meta-value { color: var(--white); }
+
+/* CONTENT */
+.content-wrap {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 6rem 3rem;
+}
+
+.toc {
+  border: 1px solid var(--border);
+  padding: 2rem 2.5rem;
+  margin-bottom: 5rem;
+}
+.toc-title {
+  font-family: var(--mono); font-size: 0.6rem;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--gray); margin-bottom: 1.5rem;
+}
+.toc-list { list-style: none; display: flex; flex-direction: column; gap: 0.8rem; }
+.toc-list a {
+  font-family: var(--mono); font-size: 0.68rem;
+  letter-spacing: 0.08em; color: var(--gray-light);
+  text-decoration: none;
+  display: flex; align-items: center; gap: 0.8rem;
+  transition: color 0.2s;
+}
+.toc-list a:hover { color: var(--white); }
+.toc-num { color: var(--gray-dim); }
+
+/* SECTIONS */
+.policy-section {
+  margin-bottom: 5rem;
+  padding-bottom: 5rem;
+  border-bottom: 1px solid var(--border);
+}
+.policy-section:last-of-type { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+
+.section-num {
+  font-family: var(--mono); font-size: 0.58rem;
+  letter-spacing: 0.2em; color: var(--gray);
+  margin-bottom: 1rem; display: block;
+}
+
+.section-title {
+  font-family: var(--display);
+  font-size: clamp(1.4rem, 3vw, 2.2rem);
+  font-weight: 700; letter-spacing: -0.01em;
+  margin-bottom: 2rem; line-height: 1.15;
+}
+
+.section-body {
+  font-size: 0.92rem; color: var(--gray-light);
+  line-height: 1.9; font-weight: 400;
+}
+.section-body p { margin-bottom: 1.4rem; }
+.section-body p:last-child { margin-bottom: 0; }
+
+.section-body strong { color: var(--white); font-weight: 600; }
+
+.rule-list {
+  list-style: none;
+  margin: 1.5rem 0;
+  display: flex; flex-direction: column; gap: 0;
+  border: 1px solid var(--border);
+}
+.rule-item {
+  display: flex; gap: 1.5rem; align-items: flex-start;
+  padding: 1.2rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.88rem; color: var(--gray-light);
+  line-height: 1.7;
+}
+.rule-item:last-child { border-bottom: none; }
+.rule-icon { flex-shrink: 0; margin-top: 0.1rem; font-size: 0.8rem; }
+.rule-icon.ok { color: rgba(255,255,255,0.8); }
+.rule-icon.no { color: rgba(255,80,80,0.8); }
+
+.highlight-box {
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.03);
+  padding: 1.8rem 2rem;
+  margin: 2rem 0;
+  font-size: 0.88rem; color: var(--gray-light);
+  line-height: 1.8;
+}
+.highlight-box strong { color: var(--white); }
+
+/* FOOTER */
+.policy-footer {
+  border-top: 1px solid var(--border);
+  padding: 3rem;
+  display: grid; grid-template-columns: 1fr 1fr 1fr;
+  gap: 2rem; align-items: center;
+}
+.footer-logo { font-family: var(--logo); font-size: 1.1rem; letter-spacing: 0.2em; }
+.footer-center { text-align: center; font-family: var(--mono); font-size: 0.58rem; letter-spacing: 0.1em; color: var(--gray); }
+.footer-right { text-align: right; font-family: var(--mono); font-size: 0.58rem; letter-spacing: 0.1em; color: var(--gray); }
+.footer-right a { color: var(--gray-light); text-decoration: none; transition: color 0.2s; }
+.footer-right a:hover { color: var(--white); }
+
+@media (max-width: 860px) {
+  nav { padding: 1.2rem 1.5rem; }
+  .hero { grid-template-columns: 1fr; padding: 10rem 1.5rem 4rem; gap: 3rem; }
+  .content-wrap { padding: 4rem 1.5rem; }
+  .policy-footer { grid-template-columns: 1fr; gap: 1rem; text-align: left; }
+  .footer-center, .footer-right { text-align: left; }
+  .cursor { display: none; } body { cursor: auto; }
+}
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+
+<nav>
+  <a class="nav-logo" href="/">FALCON</a>
+  <a class="nav-back" href="/">&#8592; Back to Home</a>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-left">
+    <p class="policy-badge">Legal Document</p>
+    <h1 class="hero-title">
+      RADIO<br>
+      <span class="outline">POLICY</span>
+    </h1>
+  </div>
+  <div class="hero-right">
+    <div class="hero-meta">
+      <div class="meta-row">
+        <span class="meta-label">Document</span>
+        <span class="meta-value">Falcon Radio Content &amp; Copyright Policy</span>
+      </div>
+      <div class="meta-row">
+        <span class="meta-label">Effective Date</span>
+        <span class="meta-value">1 January 2026</span>
+      </div>
+      <div class="meta-row">
+        <span class="meta-label">Last Revised</span>
+        <span class="meta-value">26 September 2026</span>
+      </div>
+      <div class="meta-row">
+        <span class="meta-label">Applies To</span>
+        <span class="meta-value">All Falcon Radio broadcasters &amp; listeners</span>
+      </div>
+      <div class="meta-row">
+        <span class="meta-label">Contact</span>
+        <span class="meta-value">falcon.incoroporated@gmail.com</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CONTENT -->
+<div class="content-wrap">
+
+  <!-- TABLE OF CONTENTS -->
+  <div class="toc">
+    <p class="toc-title">Contents</p>
+    <ul class="toc-list">
+      <li><a href="#s1"><span class="toc-num">01</span> Overview & Purpose</a></li>
+      <li><a href="#s2"><span class="toc-num">02</span> Content Ownership</a></li>
+      <li><a href="#s3"><span class="toc-num">03</span> Copyright & Licensed Music</a></li>
+      <li><a href="#s4"><span class="toc-num">04</span> Permitted Content</a></li>
+      <li><a href="#s5"><span class="toc-num">05</span> Prohibited Content</a></li>
+      <li><a href="#s6"><span class="toc-num">06</span> DMCA & Takedown Procedure</a></li>
+      <li><a href="#s7"><span class="toc-num">07</span> Broadcaster Responsibilities</a></li>
+      <li><a href="#s8"><span class="toc-num">08</span> Listener Rights</a></li>
+      <li><a href="#s9"><span class="toc-num">09</span> Enforcement & Consequences</a></li>
+      <li><a href="#s10"><span class="toc-num">10</span> Policy Updates</a></li>
+    </ul>
+  </div>
+
+  <!-- SECTION 1 -->
+  <div class="policy-section" id="s1">
+    <span class="section-num">01</span>
+    <h2 class="section-title">Overview &amp; Purpose</h2>
+    <div class="section-body">
+      <p>Falcon Radio is an internet radio streaming platform operated by Falcon, a Sri Lanka-based media and education company. This Content &amp; Copyright Policy governs all audio content broadcast through the Falcon Radio platform, including music, spoken word, sound effects, jingles, and any other audio material.</p>
+      <p>The purpose of this policy is to ensure that all content broadcast on Falcon Radio complies with applicable copyright law, respects the intellectual property rights of original creators, and maintains a safe, lawful, and high-quality listening environment for all users.</p>
+      <p>By using Falcon Radio as a broadcaster or listener, you agree to the terms set out in this policy. This document should be read alongside Falcon's general Terms of Service.</p>
+    </div>
+  </div>
+
+  <!-- SECTION 2 -->
+  <div class="policy-section" id="s2">
+    <span class="section-num">02</span>
+    <h2 class="section-title">Content Ownership</h2>
+    <div class="section-body">
+      <p><strong>Original Content:</strong> Broadcasters who create and stream their own original content — including original music, spoken word programmes, original jingles, and self-produced shows — retain full ownership of that content. Falcon claims no ownership over original material produced by our broadcasters.</p>
+      <p><strong>Falcon Branding:</strong> All Falcon Radio branding, logos, platform design, and proprietary software remain the exclusive intellectual property of Falcon. Broadcasters may not reproduce, modify, or commercially exploit Falcon's branding without prior written consent.</p>
+      <p><strong>Third-Party Content:</strong> Any third-party content broadcast through Falcon Radio must be properly licensed by the broadcaster prior to use. Falcon does not grant licences for third-party content and is not responsible for unlicensed use by broadcasters.</p>
+      <div class="highlight-box">
+        <strong>Important:</strong> When you stream content through Falcon Radio, you represent and warrant that you have all necessary rights, licences, consents, and permissions to broadcast that content to a public audience over the internet.
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 3 -->
+  <div class="policy-section" id="s3">
+    <span class="section-num">03</span>
+    <h2 class="section-title">Copyright &amp; Licensed Music</h2>
+    <div class="section-body">
+      <p>Music copyright is one of the most important areas of compliance for any internet radio broadcaster. Playing a commercially released song without the proper licence is a copyright infringement, regardless of whether the broadcast is free or paid.</p>
+      <p><strong>Performing Rights Organisations (PROs):</strong> In most countries, internet radio stations are required to obtain licences from performing rights organisations such as ASCAP, BMI, SESAC (United States), PRS for Music (United Kingdom), or the relevant PRO in Sri Lanka. These licences cover the right to publicly perform musical compositions.</p>
+      <p><strong>Master Recording Rights:</strong> In addition to composition rights, broadcasters must also obtain master recording licences from record labels or distributors when streaming commercially released recordings.</p>
+      <p><strong>Royalty-Free &amp; Creative Commons Music:</strong> Broadcasters may freely use music that is explicitly licensed under Creative Commons (CC0, CC BY, CC BY-SA, etc.) or released as royalty-free, provided the licence terms are followed — such as crediting the artist when required.</p>
+      <div class="highlight-box">
+        <strong>Recommendation:</strong> If you are unsure whether your music is properly licensed, we strongly recommend using royalty-free music libraries such as Epidemic Sound, Artlist, Free Music Archive, or YouTube Audio Library for your broadcasts.
+      </div>
+      <p>Falcon Radio uses Zeno.fm for stream delivery. Broadcasters are solely responsible for ensuring their content complies with all applicable licensing requirements. Falcon accepts no liability for unlicensed music broadcast by third-party station operators.</p>
+    </div>
+  </div>
+
+  <!-- SECTION 4 -->
+  <div class="policy-section" id="s4">
+    <span class="section-num">04</span>
+    <h2 class="section-title">Permitted Content</h2>
+    <div class="section-body">
+      <p>The following types of content are permitted on Falcon Radio, provided all applicable licences and permissions are in place:</p>
+      <ul class="rule-list">
+        <li class="rule-item"><span class="rule-icon ok">✓</span> Original music composed and performed by the broadcaster</li>
+        <li class="rule-item"><span class="rule-icon ok">✓</span> Commercially licensed music with valid PRO and master recording licences</li>
+        <li class="rule-item"><span class="rule-icon ok">✓</span> Royalty-free and Creative Commons music used in accordance with licence terms</li>
+        <li class="rule-item"><span class="rule-icon ok">✓</span> Original talk shows, podcasts, interviews, and commentary</li>
+        <li class="rule-item"><span class="rule-icon ok">✓</span> News reading and public interest programming</li>
+        <li class="rule-item"><span class="rule-icon ok">✓</span> Religious or cultural programming compliant with applicable laws</li>
+        <li class="rule-item"><span class="rule-icon ok">✓</span> Educational audio content produced or licensed by the broadcaster</li>
+        <li class="rule-item"><span class="rule-icon ok">✓</span> Sound effects and ambient audio that are licensed for broadcast use</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- SECTION 5 -->
+  <div class="policy-section" id="s5">
+    <span class="section-num">05</span>
+    <h2 class="section-title">Prohibited Content</h2>
+    <div class="section-body">
+      <p>The following content is strictly prohibited on Falcon Radio. Violation of these rules may result in immediate suspension of broadcasting privileges:</p>
+      <ul class="rule-list">
+        <li class="rule-item"><span class="rule-icon no">✗</span> Copyrighted music, recordings, or audio broadcast without a valid licence</li>
+        <li class="rule-item"><span class="rule-icon no">✗</span> Content that incites violence, hatred, or discrimination based on race, religion, gender, nationality, or sexual orientation</li>
+        <li class="rule-item"><span class="rule-icon no">✗</span> Defamatory, slanderous, or knowingly false statements about individuals or organisations</li>
+        <li class="rule-item"><span class="rule-icon no">✗</span> Sexually explicit or adult-only content broadcast on unlabelled or general-audience streams</li>
+        <li class="rule-item"><span class="rule-icon no">✗</span> Content that promotes or facilitates illegal activity</li>
+        <li class="rule-item"><span class="rule-icon no">✗</span> Personal information of individuals shared without their consent (doxxing)</li>
+        <li class="rule-item"><span class="rule-icon no">✗</span> Impersonation of Falcon, other broadcasters, public figures, or organisations</li>
+        <li class="rule-item"><span class="rule-icon no">✗</span> Spam, repetitive filler content, or automated broadcasts intended to game platform metrics</li>
+        <li class="rule-item"><span class="rule-icon no">✗</span> Content that violates the laws of Sri Lanka or the broadcaster's country of residence</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- SECTION 6 -->
+  <div class="policy-section" id="s6">
+    <span class="section-num">06</span>
+    <h2 class="section-title">DMCA &amp; Takedown Procedure</h2>
+    <div class="section-body">
+      <p>Falcon respects the intellectual property rights of all creators and complies with the Digital Millennium Copyright Act (DMCA) and equivalent international copyright frameworks.</p>
+      <p><strong>Filing a Takedown Notice:</strong> If you believe that content broadcast through Falcon Radio infringes your copyright, please send a written notice to <strong>falcon.incoroporated@gmail.com</strong> with the subject line "Copyright Takedown Notice". Your notice must include:</p>
+      <ul class="rule-list">
+        <li class="rule-item"><span class="rule-icon ok">→</span> Your full name and contact information</li>
+        <li class="rule-item"><span class="rule-icon ok">→</span> A description of the copyrighted work you claim has been infringed</li>
+        <li class="rule-item"><span class="rule-icon ok">→</span> The specific stream or broadcast where the infringing content appeared</li>
+        <li class="rule-item"><span class="rule-icon ok">→</span> A statement that you have a good-faith belief the use is not authorised</li>
+        <li class="rule-item"><span class="rule-icon ok">→</span> A statement that the information in the notice is accurate, under penalty of perjury</li>
+        <li class="rule-item"><span class="rule-icon ok">→</span> Your physical or electronic signature</li>
+      </ul>
+      <p>Falcon will investigate all valid notices and take appropriate action, which may include removing access to the infringing content and notifying the broadcaster. Repeat infringers will have their broadcasting privileges permanently revoked.</p>
+      <p><strong>Counter-Notices:</strong> If you are a broadcaster who believes your content was removed as a result of a mistake or misidentification, you may file a counter-notice by contacting us at the same email address with appropriate supporting documentation.</p>
+    </div>
+  </div>
+
+  <!-- SECTION 7 -->
+  <div class="policy-section" id="s7">
+    <span class="section-num">07</span>
+    <h2 class="section-title">Broadcaster Responsibilities</h2>
+    <div class="section-body">
+      <p>All individuals and organisations broadcasting through Falcon Radio agree to the following responsibilities:</p>
+      <ul class="rule-list">
+        <li class="rule-item"><span class="rule-icon ok">✓</span> Obtain and maintain all required music licences before broadcasting any copyrighted content</li>
+        <li class="rule-item"><span class="rule-icon ok">✓</span> Keep accurate records of all licensed content used in broadcasts</li>
+        <li class="rule-item"><span class="rule-icon ok">✓</span> Respond promptly to any copyright or content-related enquiries from Falcon</li>
+        <li class="rule-item"><span class="rule-icon ok">✓</span> Ensure all content complies with Sri Lankan law and international copyright standards</li>
+        <li class="rule-item"><span class="rule-icon ok">✓</span> Immediately cease broadcasting any content upon receiving a valid takedown request</li>
+        <li class="rule-item"><span class="rule-icon ok">✓</span> Not sublicence or transfer broadcasting rights to third parties without Falcon's written consent</li>
+      </ul>
+      <p>Broadcasters are solely and fully responsible for the content they stream. Falcon acts only as a platform provider and does not pre-screen or monitor live broadcasts in real time.</p>
+    </div>
+  </div>
+
+  <!-- SECTION 8 -->
+  <div class="policy-section" id="s8">
+    <span class="section-num">08</span>
+    <h2 class="section-title">Listener Rights</h2>
+    <div class="section-body">
+      <p>As a Falcon Radio listener, you have the right to:</p>
+      <ul class="rule-list">
+        <li class="rule-item"><span class="rule-icon ok">✓</span> Report content you believe violates this policy or infringes copyright</li>
+        <li class="rule-item"><span class="rule-icon ok">✓</span> Receive a response to copyright or content complaints within 7 business days</li>
+        <li class="rule-item"><span class="rule-icon ok">✓</span> Listen to all publicly available streams without being required to create an account</li>
+        <li class="rule-item"><span class="rule-icon ok">✓</span> Access this policy at any time at falcon.org.lk/radio-policy</li>
+      </ul>
+      <p>Listeners may not record, re-broadcast, or redistribute any content from Falcon Radio streams without the express written permission of both Falcon and the relevant content rights holders.</p>
+    </div>
+  </div>
+
+  <!-- SECTION 9 -->
+  <div class="policy-section" id="s9">
+    <span class="section-num">09</span>
+    <h2 class="section-title">Enforcement &amp; Consequences</h2>
+    <div class="section-body">
+      <p>Falcon reserves the right to take any of the following actions in response to policy violations, depending on the severity and frequency of the infringement:</p>
+      <ul class="rule-list">
+        <li class="rule-item"><span class="rule-icon ok">→</span> Issuing a formal written warning to the broadcaster</li>
+        <li class="rule-item"><span class="rule-icon ok">→</span> Temporarily suspending the broadcaster's streaming access</li>
+        <li class="rule-item"><span class="rule-icon ok">→</span> Permanently revoking broadcasting privileges</li>
+        <li class="rule-item"><span class="rule-icon ok">→</span> Removing or restricting access to specific content or streams</li>
+        <li class="rule-item"><span class="rule-icon ok">→</span> Reporting the infringement to relevant copyright authorities</li>
+        <li class="rule-item"><span class="rule-icon ok">→</span> Pursuing legal remedies available under Sri Lankan and international law</li>
+      </ul>
+      <div class="highlight-box">
+        <strong>Repeat Infringement:</strong> Broadcasters who repeatedly violate this policy — particularly with regard to copyright infringement — will be permanently banned from the Falcon Radio platform without prior notice or refund of any fees paid.
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 10 -->
+  <div class="policy-section" id="s10">
+    <span class="section-num">10</span>
+    <h2 class="section-title">Policy Updates</h2>
+    <div class="section-body">
+      <p>Falcon reserves the right to update or modify this Content &amp; Copyright Policy at any time. When changes are made, we will update the "Last Revised" date at the top of this document. Significant changes may also be communicated to active broadcasters via email.</p>
+      <p>Continued use of the Falcon Radio platform after any policy update constitutes your acceptance of the revised terms. We encourage all broadcasters and listeners to review this policy periodically.</p>
+      <p>If you have any questions about this policy or wish to report a copyright concern, please contact us at <strong>falcon.incoroporated@gmail.com</strong> with the subject line "Radio Policy Enquiry".</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="policy-footer">
+  <div class="footer-logo">FALCON</div>
+  <div class="footer-center">© 2026 Falcon. All rights reserved.</div>
+  <div class="footer-right">
+    <a href="/">Home</a> &nbsp;·&nbsp;
+    <a href="/contact.html">Contact</a> &nbsp;·&nbsp;
+    <a href="/eclipse.html">Eclipse</a>
+  </div>
+</div>
+
+<script>
+const cursor = document.getElementById('cursor');
+document.addEventListener('mousemove', e => {
+  cursor.style.left = e.clientX + 'px';
+  cursor.style.top  = e.clientY + 'px';
+});
+document.querySelectorAll('a').forEach(el => {
+  el.addEventListener('mouseenter', () => cursor.classList.add('expand'));
+  el.addEventListener('mouseleave', () => cursor.classList.remove('expand'));
+});
+window.addEventListener('scroll', () => {
+  document.querySelector('nav').style.background =
+    window.scrollY > 60 ? 'rgba(0,0,0,0.97)' : 'rgba(0,0,0,0.88)';
+});
+</script>
+</body>
+</html>
